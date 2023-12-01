@@ -5,11 +5,14 @@ from typing import List, Tuple, Optional, Any
 
 
 class DBManager:
+    """Class managing the SQLite database operations for books, authors, genres, and their associations."""
     def __init__(self, db_file):
+        """Initializes the DBManager object with the specified database file."""
         self.db_file = db_file
         self.conn = self.create_connection()
 
     def create_connection(self) -> Optional[sqlite3.Connection]:
+        """Creates a database connection."""
         try:
             conn = sqlite3.connect(self.db_file)
             return conn
@@ -18,6 +21,7 @@ class DBManager:
             return None
 
     def execute_sql(self, sql: str, values: Optional[Tuple[Any, ...]] = None) -> None:
+        """Executes SQL queries on the database."""
         try:
             c = self.conn.cursor()
             if values:
@@ -29,6 +33,7 @@ class DBManager:
             print(e)
 
     def create_tables(self) -> None:
+        """Creates necessary tables if they don't exist in the database."""
         create_books_sql = """
         -- books table
         CREATE TABLE IF NOT EXISTS books (
@@ -75,6 +80,7 @@ class DBManager:
         self.execute_sql(create_book_genres_sql)
 
     def add_book(self, title: str, author_id: int, publication_year: str) -> None:
+        """Adds a book entry to the database."""
         sql = """
         INSERT INTO books(title, author_id, publication_year)
         VALUES(?, ?, ?)
@@ -83,6 +89,7 @@ class DBManager:
         self.execute_sql(sql, books_data)
 
     def add_author(self, first_name: str, last_name: str, biography: str) -> None:
+        """Adds an author entry to the database."""
         sql = """
         INSERT INTO authors(first_name, last_name, biography)
         VALUES(?, ?, ?)
@@ -91,6 +98,7 @@ class DBManager:
         self.execute_sql(sql, author_data)
 
     def genre_exists(self, genre_name: str) -> bool:
+        """Checks if a genre exists in the database."""
         try:
             c = self.conn.cursor()
             c.execute("SELECT genre_id FROM genres WHERE genre_name = ?", (genre_name,))
@@ -101,6 +109,7 @@ class DBManager:
             return False
 
     def add_genre(self, genre_name: str) -> None:
+        """Adds a genre entry to the database if it doesn't already exist."""
         if not self.genre_exists(genre_name):
             sql = """
             INSERT INTO genres(genre_name)
@@ -112,12 +121,14 @@ class DBManager:
             print(f"Genre '{genre_name}' already exists in the database.")
 
     def link_books_to_genres(self, book_ids: List[int], genre_ids: List[int]) -> None:
+        """Links books with random genres in the database."""
         for book_id in book_ids:
             random_genres = random.sample(genre_ids, k=random.randint(1, min(len(genre_ids), 3)))
             for genre_id in random_genres:
                 self.execute_sql("INSERT INTO book_genres (book_id, genre_id) VALUES (?, ?)", (book_id, genre_id))
 
     def get_book_ids(self) -> List[int]:
+        """Retrieves IDs of all books from the database."""
         try:
             c = self.conn.cursor()
             c.execute("SELECT book_id FROM books")
@@ -128,6 +139,7 @@ class DBManager:
             return []
 
     def get_genre_ids(self) -> List[int]:
+        """Retrieves IDs of all genres from the database."""
         try:
             c = self.conn.cursor()
             c.execute("SELECT genre_id FROM genres")
@@ -138,6 +150,7 @@ class DBManager:
             return []
 
     def is_database_empty(self) -> bool:
+        """Checks if the database tables are empty."""
         try:
             c = self.conn.cursor()
 
@@ -165,6 +178,7 @@ class DBManager:
             return False
 
     def delete(self, table: str, id: Optional[int] = None) -> None:
+        """Deletes records from specified tables in the database."""
         try:
             c = self.conn.cursor()
 
@@ -187,6 +201,7 @@ class DBManager:
             print(e)
 
     def update(self, table: str, _id: int, **kwargs: Any) -> None:
+        """Updates records in the specified table."""
         parameters = [f"{k} = ?" for k in kwargs]
         parameters = ", ".join(parameters)
         values = tuple(v for v in kwargs.values())
@@ -243,6 +258,7 @@ class DBManager:
             return []
 
     def print_full_info(self) -> None:
+        """Prints comprehensive information about books, authors, and their associations."""
         try:
             cur = self.conn.cursor()
 

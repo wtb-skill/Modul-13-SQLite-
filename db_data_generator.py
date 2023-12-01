@@ -7,6 +7,7 @@ fake = Faker()
 
 class DBDataGenerator:
     def __init__(self, db_manager):
+        """Fills the db with random books data"""
         self.db_manager = db_manager
         self.genre_list = ['action', 'fantasy', 'sci-fi', 'thriller', 'horror', 'comedy', 'adventure']
 
